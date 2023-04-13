@@ -13,6 +13,7 @@ Edit schema and prompt in `main.ts`
 install dependencies and run `yarn start`
 
 # Example output
+This is a quick example for fun but note that super complex schema works very well too.
 
 Schema : 
 ```
