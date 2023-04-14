@@ -1,4 +1,4 @@
-import { Configuration, OpenAIApi } from "openai";
+import { Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
 import { ZodType, z } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import "dotenv/config";
@@ -9,6 +9,17 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
+const defaultTask = `Output a json object or array fitting this schema, based on the PROMPT section below.
+Code only, no commentary, no introduction sentence, no codefence block.
+
+If you are not sure or cannot generate something for any possible reason, return:
+{"error" : <the reason of the error>}`;
+
+type GenerateOptions = {
+  chatCompletionOptions?: Partial<CreateChatCompletionRequest>;
+  task?: string;
+};
+
 /**
  * Returns a javascript object or array generated with random content fitting the schema, based on the prompt
  * @param schema  zod schema
@@ -17,7 +28,8 @@ const openai = new OpenAIApi(configuration);
  */
 export const generate = async <T extends ZodType>(
   schema: T,
-  prompt: string
+  prompt: string,
+  options?: GenerateOptions
   // z.infer<T> is a utility type that generates typescript type from the zod schema
 ): Promise<z.infer<T>> => {
   // zodToJsonSchema is a function that converts a zod schema to a json schema, then stringified
@@ -26,6 +38,7 @@ export const generate = async <T extends ZodType>(
   // openai api call
   const completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
+    ...options?.chatCompletionOptions,
     messages: [
       {
         role: "user",
@@ -34,11 +47,7 @@ export const generate = async <T extends ZodType>(
       ${jsonSchema}
       
       TASK:
-      Output a json object or array fitting this schema, based on the PROMPT section below.
-      Code only, no commentary, no introduction sentence, no codefence block.
-
-      If you are not sure or cannot generate something for any possible reason, return:
-      {"error" : <the reason of the error>}
+      ${options?.task || defaultTask}
       
       PROMPT:
       ${prompt}
