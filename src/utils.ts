@@ -34,7 +34,7 @@ export const generate = async <T extends ZodType>(
       ${jsonSchema}
       
       TASK:
-      Output a json object or array generated with random content fitting this schema, based on the PORMPT section below.
+      Output a json object or array fitting this schema, based on the PROMPT section below.
       Code only, no commentary, no introduction sentence, no codefence block.
 
       If you are not sure or cannot generate something for any possible reason, return:
@@ -52,12 +52,14 @@ export const generate = async <T extends ZodType>(
     throw new Error("No message returned");
 
   let obj;
+  const response = completion.data.choices[0].message.content;
+
   // parse the response
   try {
-    const response = completion.data.choices[0].message.content;
     obj = JSON.parse(response);
   } catch (e) {
-    console.log("The json could not be parsed");
+    console.error("The response could not be parsed as json", { response });
+    throw new Error("The response could not be parsed as json");
   }
 
   // chatGpt, when generating an array, tends to wrap it in an object with a "schema" key
@@ -74,7 +76,11 @@ export const generate = async <T extends ZodType>(
   // if the response does not match the schema, throw an error
   try {
     schema.parse(obj);
-  } catch (e) {
+  } catch (error: any) {
+    console.error({
+      object: JSON.stringify(obj, null, 2),
+      error: JSON.stringify(error, null, 2),
+    });
     throw new Error("The generated json does not match the schema");
   }
 
