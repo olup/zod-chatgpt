@@ -198,3 +198,36 @@ Result:
 ```
 
 </details>
+
+<details>
+<summary>Home automation / commands</summary>
+
+Schema
+
+```
+const schema = z.array(
+  z.object({
+    command: z.enum(["switchOn", "switchOff"]),
+    room: z.enum(["livingRoom", "kitchen", "room1", "room2"]),
+  })
+);
+```
+
+Prompt :
+
+```
+const prompt = "I am going to the kitchen";
+```
+
+Result:
+
+```
+[
+  { command: 'switchOff', room: 'livingRoom' },
+  { command: 'switchOff', room: 'room1' },
+  { command: 'switchOff', room: 'room2' },
+  { command: 'switchOn', room: 'kitchen' }
+]
+```
+
+</details>
