@@ -1,5 +1,5 @@
 import { Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
-import { ZodType, z } from "zod";
+import { ZodType, object, z } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import "dotenv/config";
 
@@ -11,6 +11,7 @@ const openai = new OpenAIApi(configuration);
 
 const defaultTask = `Output a json object or array fitting this schema, based on the PROMPT section below.
 Code only, no commentary, no introduction sentence, no codefence block.
+You are generating json - make sure to escape any double quotes.
 
 If you are not sure or cannot generate something for any possible reason, return:
 {"error" : <the reason of the error>}`;
@@ -35,6 +36,19 @@ export const generate = async <T extends ZodType>(
   // zodToJsonSchema is a function that converts a zod schema to a json schema, then stringified
   const jsonSchema = JSON.stringify(zodToJsonSchema(schema, "schema"));
 
+  const content = `
+    JSON SCHEMA:"""
+    ${jsonSchema}
+    """
+    
+    TASK:"""
+    ${options?.task || defaultTask}
+    """
+    
+    PROMPT:""""
+    ${prompt}
+    """`;
+
   // openai api call
   const completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
@@ -42,16 +56,7 @@ export const generate = async <T extends ZodType>(
     messages: [
       {
         role: "user",
-        content: `
-      JSON SCHEMA: 
-      ${jsonSchema}
-      
-      TASK:
-      ${options?.task || defaultTask}
-      
-      PROMPT:
-      ${prompt}
-            `,
+        content,
       },
     ],
   });
@@ -79,6 +84,7 @@ export const generate = async <T extends ZodType>(
 
   // if the response is an error as advised in the prompt, throw an error
   if (obj.error) {
+    console.error("chatGPT cannot perform the task", { error: obj.error });
     throw new Error(obj.error);
   }
 

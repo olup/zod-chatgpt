@@ -2,7 +2,7 @@
 
 This project demonstrates the use of zod and openai's chatgpt to generate formatted, typed, consistent output:
 
-- Zod is used to create a schema from which the typescript type of the response is infered. 
+- Zod is used to create a schema from which the typescript type of the response is infered.
 - Zod's schema is also used to generate a json schema used as context for the llm's prompt.
 - Zod's schema is finally used to validate the response and guarantee the output to the function calling.
 
@@ -13,8 +13,9 @@ Edit schema and prompt in `main.ts`
 install dependencies and run `yarn start`
 
 # Example output
-## Simple things
 
+<details>
+<summary>Small fun thing</summary>
 Schema : 
 ```
 const schema = z.array(
@@ -25,12 +26,14 @@ const schema = z.array(
 );
 ```
 
-Prompt : 
+Prompt :
+
 ```
 "3 pirates talking about their treasure"
 ```
 
 Output:
+
 ```
 [
   {
@@ -47,9 +50,14 @@ Output:
   }
 ]
 ```
-## More complex
+
+</details>
+
+<details>
+<summary>Complex schema</summary>
 
 Schema (chatGPT generated it for me)
+
 ```
 const schema = z.object({
   name: z.string().max(100).optional(),
@@ -110,11 +118,13 @@ const schema = z.object({
 ```
 
 Prompt:
+
 ```
 A pirate talking about her treasure
 ```
 
 Result:
+
 ```
 {
   name: 'Sally',
@@ -150,3 +160,41 @@ Result:
   ]
 }
 ```
+
+</details>
+
+<details>
+<summary>Sentiment analysis</summary>
+
+Schema
+
+```
+const schema = z.object({
+  sentiment: z.enum(["positive", "negative", "neutral"]),
+  confidenceScore: z.number({
+    description: "How confident is the LLM on the sentiments it analyses",
+  }),
+  sourceExample: z.string({
+    description: "excerpt of the text where the sentiment was found",
+  }),
+});
+```
+
+Prompt (chatgpt generated) :
+
+```
+Analyze this text:
+Get ready to witness the power of computer engineering! We're about to blow this project out of the water with some serious skills. Let's show everyone what we're made of and bring home the win. I'm feeling pumped up and ready to conquer any challenge that comes our way. Let's do this!
+```
+
+Result:
+
+```
+{
+  sentiment: 'positive',
+  confidenceScore: 0.95,
+  sourceExample: "I'm feeling pumped up and ready to conquer any challenge that comes our way."
+}
+```
+
+</details>

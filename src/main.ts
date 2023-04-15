@@ -3,66 +3,22 @@ import { generate } from "./utils";
 
 // example zod schema, very easy to use
 const schema = z.object({
-  name: z.string().max(100).optional(),
-  email: z.string().email().optional(),
-  age: z.number().min(18).max(120).optional(),
-  phone: z
-    .string()
-    .regex(/^\+\d{1,3}\s\d{3}\s\d{3}\s\d{4}$/)
-    .optional(),
-  address: z
-    .object({
-      street: z.string().max(100).optional(),
-      city: z.string().max(50).optional(),
-      state: z.string().max(50).optional(),
-      zip: z.string().length(5).optional(),
-    })
-    .optional(),
-  interests: z.array(z.string()).max(5).optional(),
-  employment: z
-    .object({
-      companyName: z.string().max(100).optional(),
-      jobTitle: z.string().max(100).optional(),
-      salary: z.number().min(0).optional(),
-      startDate: z
-        .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/)
-        .optional(),
-      endDate: z
-        .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/)
-        .optional(),
-    })
-    .optional(),
-  education: z
-    .array(
-      z.object({
-        institutionName: z.string().max(100).optional(),
-        degree: z.string().max(50).optional(),
-        fieldOfStudy: z.string().max(50).optional(),
-        graduationDate: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-      })
-    )
-    .max(5)
-    .optional(),
-  skills: z
-    .array(
-      z.object({
-        name: z.string().max(50).optional(),
-        rating: z.number().min(1).max(10).optional(),
-      })
-    )
-    .max(10)
-    .optional(),
+  sentiment: z.enum(["positive", "negative", "neutral"]),
+  confidenceScore: z.number({
+    description: "How confident is the LLM on the sentiments it analyses",
+  }),
+  sourceExample: z.string({
+    description: "excerpt of the text where the sentiment was found",
+  }),
 });
 
 // the prompt to which the answer will be generated on the proper schema
-const prompt = "A pirate talking about her treasure";
+const prompt =
+  "Analyze this text:|nGet ready to witness the power of computer engineering! We're about to blow this project out of the water with some serious skills. Let's show everyone what we're made of and bring home the win. I'm feeling pumped up and ready to conquer any challenge that comes our way. Let's do this!";
 
-generate(schema, prompt).then((result) => {
-  // result is properly typed, and guaranteed to match the schema
-  console.log(result);
-});
+generate(schema, prompt, { chatCompletionOptions: { temperature: 0 } }).then(
+  (result) => {
+    // result is properly typed, and guaranteed to match the schema
+    console.log(result);
+  }
+);
